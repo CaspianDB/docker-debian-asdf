@@ -49,17 +49,14 @@ jobs:
           registry-type: public
 
       - name: Check latest Debian image
-        id: debian
         run: |
           echo DEBIAN_TAG=$(docker run --rm gcr.io/go-containerregistry/crane ls debian | grep -P '^bullseye-[0-9]+$' | sort -r | head -n1) | tee -a $GITHUB_ENV
 
       - name: Check latest asdf release
-        id: asdf
         run: |
           echo ASDF_RELEASE=v$(curl -s https://api.github.com/repos/asdf-vm/asdf/releases | grep -oE 'tag_name": ".{1,15}",' | sed 's/tag_name\": \"v//;s/\",//' | grep -vE '^(0\.[12]\.|0\.3\.0$)' | sed 'h; s/[+-]/./g; s/.p\([[:digit:]]\)/.z\1/; s/$/.z/; G; s/\n/ /' | LC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n | awk '{print $2}' | tail -n1) | tee -a $GITHUB_ENV
 
       - name: Prepare new release tag
-        id: image
         run: echo IMAGE_TAG=${DEBIAN_TAG}-asdf-${ASDF_RELEASE#v} | tee -a $GITHUB_ENV
 
       - name: Docker meta
@@ -115,7 +112,7 @@ jobs:
           docker push ${DOCKER_REPO}:${IMAGE_TAG}
           docker push ${DOCKER_REPO}:latest
           docker push ${AWS_ECR_REPO}:${IMAGE_TAG}
-          docker push ${DOCKER_REPO}:latest
+          docker push ${AWS_ECR_REPO}:latest
 
       - name: Create new git tag
         if: github.ref == 'refs/heads/main'
