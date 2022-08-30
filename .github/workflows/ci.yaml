@@ -30,6 +30,13 @@ jobs:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          role-session-name: GitHub
+
       - name: Login to Amazon ECR Public
         if: github.event_name != 'pull_request'
         uses: aws-actions/amazon-ecr-login@v1
