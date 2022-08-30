@@ -1,11 +1,11 @@
-# docker-debian-asdf
+# debian-asdf
 
-[![GitHub](https://img.shields.io/github/v/tag/dex4er/docker-debian-asdf?label=GitHub)](https://github.com/dex4er/docker-debian-asdf)
-[![CI](https://github.com/dex4er/docker-debian-asdf/actions/workflows/ci.yaml/badge.svg)](https://github.com/dex4er/docker-debian-asdf/actions/workflows/ci.yaml)
-[![Lint](https://github.com/dex4er/docker-debian-asdf/actions/workflows/lint.yaml/badge.svg)](https://github.com/dex4er/docker-debian-asdf/actions/workflows/lint.yaml)
-[![Docker Image Version](https://img.shields.io/docker/v/dex4er/debian-asdf/latest?label=docker&logo=docker)](https://hub.docker.com/r/dex4er/debian-asdf)
+[![GitHub](https://img.shields.io/github/v/tag/caspiandb/docker-debian-asdf?label=GitHub)](https://github.com/caspiandb/docker-debian-asdf)
+[![CI](https://github.com/caspiandb/docker-debian-asdf/actions/workflows/ci.yaml/badge.svg)](https://github.com/caspiandb/docker-debian-asdf/actions/workflows/ci.yaml)
+[![Lint](https://github.com/caspiandb/docker-debian-asdf/actions/workflows/lint.yaml/badge.svg)](https://github.com/caspiandb/docker-debian-asdf/actions/workflows/lint.yaml)
+[![Docker Image Version](https://img.shields.io/docker/v/caspiandb/debian-asdf/latest?label=docker&logo=docker)](https://hub.docker.com/r/caspiandb/debian-asdf)
 
-Container image with [asdf](https://asdf-vm.com/) installer.
+Container image with [asdf](https://asdf-vm.com/) installer based on Debian 11 "bullseye".
 
 ## Tags
 
@@ -16,14 +16,14 @@ Container image with [asdf](https://asdf-vm.com/) installer.
 CLI:
 
 ```shell
-docker pull dex4er/debian-asdf
-docker run dex4er/debian-asdf bash -c "asdf plugin add nodejs && asdf install nodejs latest && asdf global nodejs latest && node -v"
+docker pull caspiandb/debian-asdf
+docker run caspiandb/debian-asdf bash -c "asdf plugin add nodejs && asdf install nodejs latest && asdf global nodejs latest && node -v"
 ```
 
 Dockerfile:
 
 ```Dockerfile
-FROM dex4er/debian-asdf:latest
+FROM caspiandb/debian-asdf:latest
 COPY .tool-versions /root/
 RUN bash -c 'cat .tool-versions | while read plugin version; do asdf plugin add $plugin; done'
 RUN bash -c 'asdf install'
@@ -36,5 +36,5 @@ RUN bash -c 'asdf list'
 [asdf](https://asdf-vm.com/) project.
 
 [License
-information](https://github.com/dex4er/docker-debian-asdf/blob/main/LICENSE) for
+information](https://github.com/caspiandb/docker-debian-asdf/blob/main/LICENSE) for
 container image project.
