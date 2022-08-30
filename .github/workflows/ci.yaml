@@ -33,6 +33,10 @@ jobs:
         run: |
           echo ASDF_RELEASE=v$(curl -s https://api.github.com/repos/asdf-vm/asdf/releases | grep -oE 'tag_name": ".{1,15}",' | sed 's/tag_name\": \"v//;s/\",//' | grep -vE '^(0\.[12]\.|0\.3\.0$)' | sed 'h; s/[+-]/./g; s/.p\([[:digit:]]\)/.z\1/; s/$/.z/; G; s/\n/ /' | LC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n | awk '{print $2}' | tail -n1) | tee -a $GITHUB_ENV
 
+      - name: Prepare new release tag
+        id: image
+        run: echo IMAGE_TAG=${DEBIAN_TAG}-asdf-${ASDF_RELEASE#v} | tee -a $GITHUB_ENV
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
@@ -45,6 +49,9 @@ jobs:
             type=sha
             type=ref,event=branch
             type=ref,event=pr
+          labels: |
+            org.opencontainers.image.version=${{ env.IMAGE_TAG }}
+            org.opencontainers.image.vendor=${{ env.IMAGE_VENDOR }}
 
       - name: Login to DockerHub
         if: github.event_name != 'pull_request'
@@ -74,10 +81,6 @@ jobs:
 
       - name: Test built image
         run: docker run --rm -t ${IMAGE_REPO}:edge bash -c "asdf version" | grep $ASDF_RELEASE
-
-      - name: Prepare new release tag
-        id: image
-        run: echo IMAGE_TAG=${DEBIAN_TAG}-asdf-${ASDF_RELEASE#v} | tee -a $GITHUB_ENV
 
       - name: Retag to release
         if: github.event_name != 'pull_request'
