@@ -41,6 +41,7 @@ jobs:
             ${{ env.IMAGE_REPO }}
           tags: |
             type=edge
+            type=raw,prefix=build-,value=${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
             type=sha
             type=ref,event=branch
             type=ref,event=pr
