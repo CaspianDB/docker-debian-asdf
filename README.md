@@ -25,9 +25,9 @@ Dockerfile:
 ```Dockerfile
 FROM caspiandb/debian-asdf:latest
 COPY .tool-versions /root/
-RUN bash -c 'cat .tool-versions | while read plugin version; do asdf plugin add $plugin; done'
-RUN bash -c 'asdf install'
-RUN bash -c 'asdf list'
+RUN cat .tool-versions | while read plugin version; do asdf plugin add $plugin; done
+RUN asdf install
+RUN asdf list
 ```
 
 ## License
