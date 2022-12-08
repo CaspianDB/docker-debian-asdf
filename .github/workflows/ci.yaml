@@ -67,6 +67,9 @@ jobs:
       - name: Build
         run: make build DOCKER_REGISTRY="${AWS_ECR_REPO}" VERSION="${VERSION}"
 
+      - name: Inspect container image
+        run: docker inspect "$IMAGE_NAME" | jq -C .
+
       - name: Test built image
         run: make test
 
