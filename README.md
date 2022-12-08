@@ -2,7 +2,7 @@
 
 [![GitHub](https://img.shields.io/github/v/tag/caspiandb/docker-debian-asdf?label=GitHub)](https://github.com/caspiandb/docker-debian-asdf)
 [![CI](https://github.com/caspiandb/docker-debian-asdf/actions/workflows/ci.yaml/badge.svg)](https://github.com/caspiandb/docker-debian-asdf/actions/workflows/ci.yaml)
-[![Lint](https://github.com/caspiandb/docker-debian-asdf/actions/workflows/lint.yaml/badge.svg)](https://github.com/caspiandb/docker-debian-asdf/actions/workflows/lint.yaml)
+[![Trunk Check](https://github.com/caspiandb/docker-debian-asdf/actions/workflows/trunk.yaml/badge.svg)](https://github.com/caspiandb/docker-debian-asdf/actions/workflows/trunk.yaml)
 [![Docker Image Version](https://img.shields.io/docker/v/caspiandb/debian-asdf/latest?label=docker&logo=docker)](https://hub.docker.com/r/caspiandb/debian-asdf)
 
 Container image with [asdf](https://asdf-vm.com/) installer based on Debian 11 "bullseye".
