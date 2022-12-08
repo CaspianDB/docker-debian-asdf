@@ -67,8 +67,11 @@ jobs:
       - name: Build
         run: make build DOCKER_REGISTRY="${AWS_ECR_REPO}" VERSION="${VERSION}"
 
+      - name: Inspect container image
+        run: docker inspect "$IMAGE_NAME" | jq -C .
+
       - name: Test built image
-        run: docker run --rm -t ${IMAGE_NAME} bash -c "asdf version" | grep ^v
+        run: make test
 
       - name: Push to ECR
         if: github.ref == 'refs/heads/main'
