@@ -65,7 +65,7 @@ jobs:
         run: echo VERSION=$(make info | awk '$1=="Version:"{print $2}') | tee -a $GITHUB_ENV
 
       - name: Build
-        run: make build DOCKER_REGISTRY="${AWS_ECR_REPO}" VERSION="${VERSION}"
+        run: make build VERSION="${VERSION}"
 
       - name: Inspect container image
         run: docker inspect "$IMAGE_NAME" | jq -C .
@@ -75,11 +75,11 @@ jobs:
 
       - name: Push to ECR
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        run: make push DOCKER_REGISTRY="${AWS_ECR_REPO}"
+        run: make push DOCKER_REPO="${AWS_ECR_REPO}"
 
       - name: Push to Docker
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        run: make push DOCKER_REGISTRY="${DOCKER_REPO}"
+        run: make push DOCKER_REPO="${DOCKER_REPO}"
 
       - name: Create new git tag
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
