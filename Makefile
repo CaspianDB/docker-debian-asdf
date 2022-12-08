@@ -33,8 +33,13 @@ push: ## Publish to container registry.
 	docker tag $(IMAGE_NAME) $(DOCKER_REPO):latest
 	docker push $(DOCKER_REPO):latest
 
+.PHONY: test
+test: ## Test local image
+	$(call print-target)
+	docker run --rm -t $(IMAGE_NAME) bash -c "asdf version" | grep ^v
+
 .PHONY: info
-info:
+info: ## Show information about version
 	@echo "Version:           ${VERSION}"
 	@echo "Revision:          ${REVISION}"
 	@echo "Build date:        ${BUILDDATE}"
