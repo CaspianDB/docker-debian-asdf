@@ -80,6 +80,9 @@ jobs:
           tags: |
             type=raw,value=${{ env.VERSION }}
             type=match,prefix=asdf-,pattern=v(.*),group=1,value=${{ env.ASDF_RELEASE }}
+          labels: |
+            maintainer="CaspianDB <info@caspiandb.com>"
+            org.opencontainers.image.version=${{ env.VERSION }}
 
       - name: Build and push
         id: kaniko
