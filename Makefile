@@ -27,11 +27,11 @@ build: ## Build a local image without publishing artifacts.
 push: ## Publish to container registry.
 	$(call print-target)
 	docker tag $(IMAGE_NAME) $(DOCKER_REPO):$(VERSION)
-	docker push $(IMAGE_NAME) $(DOCKER_REPO):$(VERSION)
+	docker push $(DOCKER_REPO):$(VERSION)
 	docker tag $(IMAGE_NAME) $(DOCKER_REPO):asdf-$(ASDF_RELEASE:v%=%)
-	docker push $(IMAGE_NAME) $(DOCKER_REPO):asdf-$(ASDF_RELEASE:v%=%)
+	docker push $(DOCKER_REPO):asdf-$(ASDF_RELEASE:v%=%)
 	docker tag $(IMAGE_NAME) $(DOCKER_REPO):latest
-	docker push $(IMAGE_NAME) $(DOCKER_REPO):latest
+	docker push $(DOCKER_REPO):latest
 
 .PHONY: info
 info:
