@@ -3,18 +3,25 @@ name: CI
 on:
   push:
     branches:
-      - "*"
+      - "**"
     paths-ignore:
-      - ".gitignore"
-      - "LICENSE"
-      - "README.md"
+      - .dockerignore
+      - .editorconfig
+      - .gitignore
+      - .hadolint.yaml
+      - .markdownlint.yaml
+      - .trunk/**
+      - LICENSE
+      - README.md
   pull_request:
     branches:
       - "main"
   workflow_dispatch:
 
 jobs:
-  docker:
+  build:
+    name: Build
+
     permissions:
       id-token: write
       contents: write
@@ -43,48 +50,48 @@ jobs:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
 
       - name: Login to Amazon ECR Public
+        id: login-ecr
         if: github.ref == 'refs/heads/main'
         uses: aws-actions/amazon-ecr-login@v1
         with:
           registry-type: public
 
-      - name: Check latest Debian image
-        run: |
-          echo DEBIAN_TAG=$(docker run --rm gcr.io/go-containerregistry/crane ls debian | grep -P '^bullseye-[0-9]+$' | sort -r | head -n1) | tee -a $GITHUB_ENV
-
       - name: Check latest asdf release
         run: |
           echo ASDF_RELEASE=v$(curl -s https://api.github.com/repos/asdf-vm/asdf/releases | grep -oE 'tag_name": ".{1,15}",' | sed 's/tag_name\": \"v//;s/\",//' | grep -vE '^(0\.[12]\.|0\.3\.0$)' | sed 'h; s/[+-]/./g; s/.p\([[:digit:]]\)/.z\1/; s/$/.z/; G; s/\n/ /' | LC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n | awk '{print $2}' | tail -n1) | tee -a $GITHUB_ENV
 
-      - name: Prepare new release tag
-        run: echo IMAGE_TAG=${DEBIAN_TAG}-asdf-${ASDF_RELEASE#v} | tee -a $GITHUB_ENV
+      - name: Check the base image tag
+        run: |
+          echo DEBIAN_TAG=$(docker run --rm gcr.io/go-containerregistry/crane ls debian | grep -P '^bullseye-[0-9]+$' | sort -r | head -n1) | tee -a $GITHUB_ENV
 
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: |
-            ${{ env.DOCKER_REPO }}
-          tags: |
-            type=edge
-            type=raw,prefix=build-,value=${{ github.run_id }}-${{ github.run_number }}-${{ github.run_attempt }}
-            type=sha
-            type=ref,event=branch
-            type=ref,event=pr
-          labels: |
-            org.opencontainers.image.title=${{ env.IMAGE_TITLE }}
-            org.opencontainers.image.vendor=${{ env.IMAGE_VENDOR }}
-            org.opencontainers.image.version=${{ env.IMAGE_TAG }}
+      - name: Prepare new version tag
+        run: |
+          echo VERSION=asdf-${ASDF_RELEASE#v}-${DEBIAN_TAG} | tee -a $GITHUB_ENV
+
+      - name: Prepare all image tags
+        run: |
+          echo "DOCKER_TAGS=<<END" | tee -a $GITHUB_ENV
+          cat <<END | tee -a $GITHUB_ENV
+          ${{ env.AWS_ECR_REPO }}:${VERSION}
+          ${{ env.AWS_ECR_REPO }}:asdf-${ASDF_RELEASE#v}
+          ${{ env.AWS_ECR_REPO }}:latest
+          ${{ env.DOCKER_REPO }}:${VERSION}
+          ${{ env.DOCKER_REPO }}:asdf-${ASDF_RELEASE#v}
+          ${{ env.DOCKER_REPO }}:latest
+          END
+          echo "END" | tee -a $GITHUB_ENV
 
       - name: Build and push
+        id: kaniko
         uses: int128/kaniko-action@v1
         with:
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          push: false
+          tags: |
+            ${{ env.DOCKER_TAGS }}
           build-args: |
             ASDF_RELEASE=${{ env.ASDF_RELEASE }}
             DEBIAN_TAG=${{ env.DEBIAN_TAG }}
+            VERSION=${{ env.VERSION }}
           kaniko-args: |
             --tarPath=/kaniko/action/output/image.tar
             --single-snapshot
@@ -96,26 +103,17 @@ jobs:
         run: docker load -i /tmp/kaniko-action-*/image.tar
 
       - name: Test built image
-        run: docker run --rm -t ${DOCKER_REPO}:edge bash -c "asdf version" | grep $ASDF_RELEASE
-
-      - name: Retag
-        if: github.ref == 'refs/heads/main'
-        run: |
-          docker tag ${DOCKER_REPO}:edge ${DOCKER_REPO}:${IMAGE_TAG}
-          docker tag ${DOCKER_REPO}:edge ${DOCKER_REPO}:latest
-          docker tag ${DOCKER_REPO}:edge ${AWS_ECR_REPO}:${IMAGE_TAG}
-          docker tag ${DOCKER_REPO}:edge ${AWS_ECR_REPO}:latest
+        run: docker run --rm -t ${AWS_ECR_REPO}:latest bash -c "asdf version" | grep $ASDF_RELEASE
 
       - name: Push
         if: github.ref == 'refs/heads/main'
         run: |
-          docker push ${DOCKER_REPO}:${IMAGE_TAG}
-          docker push ${DOCKER_REPO}:latest
-          docker push ${AWS_ECR_REPO}:${IMAGE_TAG}
-          docker push ${AWS_ECR_REPO}:latest
+          for tag in $(echo "$DOCKER_TAGS"); do
+            docker push $tag
+          done
 
       - name: Create new git tag
         if: github.ref == 'refs/heads/main'
         run: |
-          git tag -f ${IMAGE_TAG}
-          git push -f origin ${IMAGE_TAG}
+          git tag -f ${VERSION}
+          git push -f origin ${VERSION}

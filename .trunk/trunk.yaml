@@ -3,23 +3,18 @@ runtimes:
   enabled:
     - go@1.18.3
     - node@16.14.2
-plugins:
-  sources:
-    - id: trunk
-      ref: v0.0.5
-      uri: https://github.com/trunk-io/plugins
 actions:
   enabled:
     - trunk-cache-prune
     - trunk-upgrade-available
 cli:
-  version: 0.18.1-beta
+  version: 1.1.0
 lint:
   enabled:
-    - actionlint@1.6.21
+    - actionlint@1.6.22
     - dotenv-linter@3.2.0
     - git-diff-check@SYSTEM
-    - gitleaks@8.15.0
-    - hadolint@2.10.0
+    - gitleaks@8.15.2
+    - hadolint@2.12.0
     - markdownlint@0.32.2
-    - prettier@2.7.1
+    - prettier@2.8.1

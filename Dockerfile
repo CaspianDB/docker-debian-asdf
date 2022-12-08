@@ -2,9 +2,11 @@
 
 ARG ASDF_RELEASE=v0.10.2
 ARG DEBIAN_TAG=bullseye
+ARG VERSION=latest
 
 FROM debian:${DEBIAN_TAG}
 
+ARG VERSION
 ARG ASDF_RELEASE
 
 RUN apt-get -q -y update
@@ -22,3 +24,12 @@ ENV ASDF_DIR=/root/.asdf
 ENV PATH=/root/.asdf/shims:/root/.asdf/bin:${PATH}
 
 RUN asdf info
+
+LABEL \
+  maintainer="CaspianDB <info@caspiandb.com>" \
+  org.opencontainers.image.description="Container image with asdf installer based on Debian" \
+  org.opencontainers.image.licenses="MIT" \
+  org.opencontainers.image.source=https://github.com/CaspianDB/docker-debian-asdf \
+  org.opencontainers.image.title=debian-asdf \
+  org.opencontainers.image.vendor=CaspianDB \
+  org.opencontainers.image.version=${VERSION}
