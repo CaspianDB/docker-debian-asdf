@@ -68,26 +68,25 @@ jobs:
         run: |
           echo VERSION=asdf-${ASDF_RELEASE#v}-${DEBIAN_TAG} | tee -a $GITHUB_ENV
 
-      - name: Prepare all image tags
-        run: |
-          echo "DOCKER_TAGS=<<END" | tee -a $GITHUB_ENV
-          cat <<END | tee -a $GITHUB_ENV
-          ${{ env.AWS_ECR_REPO }}:${VERSION}
-          ${{ env.AWS_ECR_REPO }}:asdf-${ASDF_RELEASE#v}
-          ${{ env.AWS_ECR_REPO }}:latest
-          ${{ env.DOCKER_REPO }}:${VERSION}
-          ${{ env.DOCKER_REPO }}:asdf-${ASDF_RELEASE#v}
-          ${{ env.DOCKER_REPO }}:latest
-          END
-          echo "END" | tee -a $GITHUB_ENV
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          flavor: |
+            latest=true
+          images: |
+            ${{ env.AWS_ECR_REPO }}
+            ${{ env.DOCKER_REPO }}
+          tags: |
+            type=raw,value=${{ env.VERSION }}
+            type=match,prefix=asdf-,pattern=v(.*),group=1,value=${{ env.ASDF_RELEASE }}
 
       - name: Build and push
         id: kaniko
         uses: int128/kaniko-action@v1
         with:
           push: false
-          tags: |
-            ${{ env.DOCKER_TAGS }}
+          tags: ${{ steps.meta.outputs.tags }}
           build-args: |
             ASDF_RELEASE=${{ env.ASDF_RELEASE }}
             DEBIAN_TAG=${{ env.DEBIAN_TAG }}
@@ -108,7 +107,7 @@ jobs:
       - name: Push
         if: github.ref == 'refs/heads/main'
         run: |
-          for tag in $(echo "$DOCKER_TAGS"); do
+          for tag in $(echo "${{ steps.meta.outputs.tags }}"); do
             docker push $tag
           done
 
