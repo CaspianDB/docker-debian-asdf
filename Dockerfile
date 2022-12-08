@@ -3,6 +3,8 @@
 ARG ASDF_RELEASE=v0.10.2
 ARG DEBIAN_TAG=bullseye
 ARG VERSION=latest
+ARG REVISION
+ARG BUILDDATE
 
 FROM debian:${DEBIAN_TAG}
 
@@ -27,9 +29,12 @@ RUN asdf info
 
 LABEL \
   maintainer="CaspianDB <info@caspiandb.com>" \
-  org.opencontainers.image.description="Container image with asdf installer based on Debian" \
+  org.opencontainers.image.created=${BUILDDATE} \
+  org.opencontainers.image.description="Container image with Debian and asdf" \
   org.opencontainers.image.licenses="MIT" \
+  org.opencontainers.image.revision=${REVISION} \
   org.opencontainers.image.source=https://github.com/CaspianDB/docker-debian-asdf \
   org.opencontainers.image.title=debian-asdf \
+  org.opencontainers.image.url=https://github.com/CaspianDB/docker-debian-asdf \
   org.opencontainers.image.vendor=CaspianDB \
   org.opencontainers.image.version=${VERSION}

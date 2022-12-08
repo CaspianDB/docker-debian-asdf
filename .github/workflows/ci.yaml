@@ -35,6 +35,11 @@ jobs:
       - name: Prepare environment variables
         run: cat .github/.env >> $GITHUB_ENV
 
+      - name: Enable Docker experimental features
+        run: |
+          sudo yq '.experimental=true' -i -o json /etc/docker/daemon.json
+          sudo systemctl restart docker.service
+
       - name: Login to DockerHub
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
@@ -56,63 +61,19 @@ jobs:
         with:
           registry-type: public
 
-      - name: Check latest asdf release
-        run: |
-          echo ASDF_RELEASE=v$(curl -s https://api.github.com/repos/asdf-vm/asdf/releases | grep -oE 'tag_name": ".{1,15}",' | sed 's/tag_name\": \"v//;s/\",//' | grep -vE '^(0\.[12]\.|0\.3\.0$)' | sed 'h; s/[+-]/./g; s/.p\([[:digit:]]\)/.z\1/; s/$/.z/; G; s/\n/ /' | LC_ALL=C sort -t. -k 1,1 -k 2,2n -k 3,3n -k 4,4n -k 5,5n | awk '{print $2}' | tail -n1) | tee -a $GITHUB_ENV
-
-      - name: Check the base image tag
-        run: |
-          echo DEBIAN_TAG=$(docker run --rm gcr.io/go-containerregistry/crane ls debian | grep -P '^bullseye-[0-9]+$' | sort -r | head -n1) | tee -a $GITHUB_ENV
-
-      - name: Prepare new version tag
-        run: |
-          echo VERSION=asdf-${ASDF_RELEASE#v}-${DEBIAN_TAG} | tee -a $GITHUB_ENV
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          flavor: |
-            latest=true
-          images: |
-            ${{ env.AWS_ECR_REPO }}
-            ${{ env.DOCKER_REPO }}
-          tags: |
-            type=raw,value=${{ env.VERSION }}
-            type=match,prefix=asdf-,pattern=v(.*),group=1,value=${{ env.ASDF_RELEASE }}
-          labels: |
-            maintainer="CaspianDB <info@caspiandb.com>"
-            org.opencontainers.image.version=${{ env.VERSION }}
-
-      - name: Build and push
-        id: kaniko
-        uses: int128/kaniko-action@v1
-        with:
-          push: false
-          tags: ${{ steps.meta.outputs.tags }}
-          build-args: |
-            ASDF_RELEASE=${{ env.ASDF_RELEASE }}
-            DEBIAN_TAG=${{ env.DEBIAN_TAG }}
-            VERSION=${{ env.VERSION }}
-          kaniko-args: |
-            --tarPath=/kaniko/action/output/image.tar
-            --single-snapshot
-            --skip-unused-stages
-            --snapshotMode=redo
-            --use-new-run
-
-      - name: Reuse built image
-        run: docker load -i /tmp/kaniko-action-*/image.tar
+      - name: Build
+        run: make build DOCKER_REGISTRY="${AWS_ECR_REPO}"
 
       - name: Test built image
-        run: docker run --rm -t ${AWS_ECR_REPO}:latest bash -c "asdf version" | grep $ASDF_RELEASE
+        run: docker run --rm -t ${IMAGE_NAME} bash -c "asdf version" | grep ^v
 
-      - name: Push
+      - name: Push to ECR
         if: github.ref == 'refs/heads/main'
-        run: |
-          for tag in $(echo "${{ steps.meta.outputs.tags }}"); do
-            docker push $tag
-          done
+        run: make push DOCKER_REGISTRY="${AWS_ECR_REPO}"
+
+      - name: Push to Docker
+        if: github.ref == 'refs/heads/main'
+        run: make push DOCKER_REGISTRY="${DOCKER_REPO}"
 
       - name: Create new git tag
         if: github.ref == 'refs/heads/main'
