@@ -61,8 +61,11 @@ jobs:
         with:
           registry-type: public
 
+      - name: Calculate new version number
+        run: echo VERSION=$(make info | awk '$1=="Version:"{print $2}') | tee -a $GITHUB_ENV
+
       - name: Build
-        run: make build DOCKER_REGISTRY="${AWS_ECR_REPO}"
+        run: make build DOCKER_REGISTRY="${AWS_ECR_REPO}" VERSION="${VERSION}"
 
       - name: Test built image
         run: docker run --rm -t ${IMAGE_NAME} bash -c "asdf version" | grep ^v
