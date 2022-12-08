@@ -9,7 +9,7 @@ Container image with [asdf](https://asdf-vm.com/) installer based on Debian 11 "
 
 ## Tags
 
-- `bullseye-YYYYmmdd-asdf-X.Y.Z`, `latest`
+- `asdf-X.Y.Z-bullseye-YYYYmmdd`, `asdf-X.Y.Z`, `latest`
 
 ## Usage
 
