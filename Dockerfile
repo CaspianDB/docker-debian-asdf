@@ -15,7 +15,7 @@ ARG REVISION
 
 RUN apt-get -q -y update
 RUN apt-get -q -y --no-install-recommends install \
-  ca-certificates curl git unzip
+  ca-certificates curl git procps unzip xz-utils
 
 WORKDIR /root/
 

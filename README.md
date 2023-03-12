@@ -7,6 +7,15 @@
 
 Container image with [asdf](https://asdf-vm.com/) installer based on Debian 11 "bullseye".
 
+Additional Debian packages:
+
+- [ca-certificates](https://packages.debian.org/bullseye/ca-certificates)
+- [curl](https://packages.debian.org/bullseye/curl)
+- [git](https://packages.debian.org/bullseye/git)
+- [procps](https://packages.debian.org/bullseye/procps)
+- [unzip](https://packages.debian.org/bullseye/unzip)
+- [xz-utils](https://packages.debian.org/bullseye/xz-utils)
+
 ## Tags
 
 - `asdf-X.Y.Z-bullseye-YYYYmmdd`, `asdf-X.Y.Z`, `latest`
